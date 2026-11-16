@@ -50,6 +50,7 @@ public class DuenioServiceImpl implements DuenioService {
         duenioExistente.setApellido(duenio.getApellido());
         duenioExistente.setTelefono(duenio.getTelefono());
         duenioExistente.setCedula(duenio.getCedula());
+        duenioExistente.setEmail(duenio.getEmail());
 
         return duenioRepository.save(duenioExistente);
     }
