@@ -11,4 +11,5 @@ public interface MascotaService {
     Mascota save(Mascota mascota);
     Mascota update(Long id, Mascota mascota);
     void deleteById(Long id);
+    List<Mascota> findByDuenioId(Long duenioId);
 }

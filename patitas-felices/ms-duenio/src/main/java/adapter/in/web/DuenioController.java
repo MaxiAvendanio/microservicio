@@ -1,0 +1,128 @@
+package adapter.in.web;
+
+
+import adapter.in.web.dto.DuenioMapper;
+import adapter.in.web.dto.DuenioRequestDTO;
+import adapter.in.web.dto.DuenioResponseDTO;
+import domain.model.Duenio;
+import domain.port.in.DuenioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Tag(name = "Duenios", description = "CRUD - clinica veterinaria-Duenio")
+@RestController
+@RequestMapping("/api/duenio")
+@RequiredArgsConstructor
+public class DuenioController {
+
+    private final DuenioService duenioService;
+
+    @Operation(
+            summary = "Registro de nuevos duenios",
+            description = "Crea un nuevo duenio. Todos los valores deben estar completos ya que: la cedula debe estar comprendida entre 7 y 8 caracteres"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Duenio creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Los datos son invalidos",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "cedula ya registrada",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @PostMapping
+    public ResponseEntity<DuenioResponseDTO> registrarDuenio(@Valid @RequestBody DuenioRequestDTO duenioRequestDto) {
+        Duenio duenio = duenioService.save(DuenioMapper.toEntity(duenioRequestDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(DuenioMapper.toResponse(duenio));
+    }
+
+    @Operation(
+            summary = "Busca duenio por ID",
+            description = "Devuelve los datos del duenio con el ID indicado; sino existe devuelve 404"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Duenio encontrado"),
+            @ApiResponse(responseCode = "404", description = "No existe duenio con ID",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<DuenioResponseDTO> buscarPorId(@Parameter(description = "ID del duenio a buscar", example = "1") @PathVariable("id") Long id) {
+        Duenio duenio = duenioService.findById(id);
+        return ResponseEntity.ok(DuenioMapper.toResponse(duenio));
+    }
+
+    @Operation(
+            summary = "Lista todos los duenios existentes en la clinica",
+            description = "Devuelve la lista completa de todos los duenios registrados, si no hay duenios devuelve una lista vacia con 200"
+    )
+    @GetMapping
+    public ResponseEntity<List<DuenioResponseDTO>> listarTodos() {
+        List<DuenioResponseDTO> respuesta = duenioService.findAll().stream().map(DuenioMapper::toResponse).toList();
+        return ResponseEntity.ok(respuesta);
+    }
+
+    @Operation(
+            summary = "Modifica un duenio existente",
+            description = "Actualiza los datos del duenio con el ID indicado"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Duenio modificado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Los datos son invalidos",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "No existe duenio con ese ID",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<DuenioResponseDTO> modificarDuenio(@Parameter(description = "ID del duenio a modificar", example = "1") @PathVariable Long id,
+                                                             @Valid @RequestBody DuenioRequestDTO duenioRequestDTO) {
+        Duenio duenioModificado = duenioService.update(id, DuenioMapper.toEntity(duenioRequestDTO));
+        return ResponseEntity.ok(DuenioMapper.toResponse(duenioModificado));
+    }
+
+    @Operation(
+            summary = "Elimina un duenio",
+            description = "Borra el duenio con el ID indicado"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Duenio eliminado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "No existe duenio con ese ID",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarDuenio(@Parameter(description = "ID del duenio a eliminar", example = "1") @PathVariable Long id) {
+        duenioService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Busca duenio por nombre",
+            description = "Devuelve el duenio que coincida con el nombre indicado, sin distinguir mayúsculas/minúsculas"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Duenio encontrado"),
+            @ApiResponse(responseCode = "404", description = "No existe duenio con ese nombre")
+    })
+    @GetMapping("/buscar/{nombre}")
+    public ResponseEntity<DuenioResponseDTO> buscarPorNombre(@Parameter(description = "Nombre del duenio", example = "Maxi") @PathVariable String nombre) {
+         Optional<Duenio> duenioBuscado = duenioService.findByNombreIgnoreCase(nombre);
+        return duenioBuscado.map(DuenioMapper::toResponse).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/buscar/{email}")
+    public ResponseEntity<DuenioResponseDTO> buscarPorEmail(@Parameter(description = "Email del duenio", example = "maxi@gmail.com") @PathVariable String email) {
+        Optional<Duenio> duenioBuscadoPorEmail = duenioService.findByEmail(email);
+        return duenioBuscadoPorEmail.map(DuenioMapper::toResponse).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+}

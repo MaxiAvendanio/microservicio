@@ -62,4 +62,10 @@ public class MascotaServiceImpl implements MascotaService {
         }
         mascotaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Mascota> findByDuenioId(Long duenioId) {
+        return mascotaRepository.findByDuenioId(duenioId);
+    }
+
 }

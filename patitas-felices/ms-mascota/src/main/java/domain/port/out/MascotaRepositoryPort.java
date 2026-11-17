@@ -10,4 +10,5 @@ public interface MascotaRepositoryPort {
     List<Mascota> findDuenioById(Long duenioId);
     Mascota save(Mascota mascota);
     void deleteById(Long id);
+    List<Mascota> findByDuenioId(Long duenioId);
 }

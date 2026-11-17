@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,6 +33,17 @@ public class TurnoServiceImp implements TurnoService {
             throw new TurnoNotFoundException(id);
         }
         return turno;
+    }
+
+    @Override
+    public List<Turno> findByVeterinarioIdAndFecha(Long veterinarioId, LocalDate fecha) {
+        boolean isAvailable = turnoRepository.isTurnoAvailable(veterinarioId, fecha);
+
+        if(!isAvailable){
+            throw new TurnoVeterinarioNotAvailableException();
+        }
+
+        return turnoRepository.findByVeterinarioIdAndFecha(veterinarioId, fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay().minusNanos(1));
     }
 
     @Override
@@ -77,5 +90,16 @@ public class TurnoServiceImp implements TurnoService {
         }
         turno.setEstado(EstadoTurno.CANCELADO);
         return turnoRepository.save(turno);
+    }
+
+    @Override
+    public Turno update(Long id, Turno turno) {
+        Turno existente = findById(id);
+        existente.setFecha(turno.getFecha());
+        existente.setMascotaId(turno.getMascotaId());
+        existente.setVeterinarioId(turno.getVeterinarioId());
+        existente.setEstado(turno.getEstado());
+        existente.setMotivo(turno.getMotivo());
+        return turnoRepository.save(existente);
     }
 }

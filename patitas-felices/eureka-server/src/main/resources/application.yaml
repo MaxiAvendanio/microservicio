@@ -1,0 +1,16 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+#    para que eureka no se auto-registre ponemos esto
+    register-with-eureka: false
+    fetch-registry: false
+#    para que funcione sin internet
+  server:
+    enable-self-preservation: false
+

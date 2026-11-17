@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: ms-turno
+  config:
+    import: "optional:configserer:http://localhost:8888"
+
+server:
+  # le indico el puerto donde va a correr
+  port: 8084
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/duenio_db
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

@@ -14,6 +14,7 @@
         <module>ms-mascota</module>
         <module>ms-veterinario</module>
         <module>ms-turno</module>
+        <module>eureka-server</module>
     </modules>
     <!--Todos los proyectos que esten dentro de este contenedor estan basados en springboot 4.1.1-->
     <parent>
